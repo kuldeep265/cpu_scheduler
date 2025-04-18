@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>CPU SCHEDULING ALGORITHM SIMULATOR</h1>
+        <div class="main-content">
+            <div class="control-panel">
+                <div class="algorithm-selector">
+                    <label>Select Algorithm:</label>
+                    <select id="algorithm">
+                        <option value="fcfs">First Come First Serve (FCFS)</option>
+                        <option value="sjf">Shortest Job First (SJF)</option>
+                        <option value="rr">Round Robin</option>
+                        <option value="priority">Priority Scheduling</option>
+                    </select>
+                </div>
+                <div id="timeQuantumSection" style="display: none;">
+                    <label>Time Quantum:</label>
+                    <input type="number" id="timeQuantum" value="2" min="1">
+                </div>
+                <button id="submitBtn">Submit</button>
+            </div>
+
+            <div class="process-panel">
+                <h2>Processes</h2>
+                <div id="processList"></div>
+                <div class="process-controls">
+                    <button id="addProcess">Add Process</button>
+                    <button id="clearProcesses">Clear All</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization-section">
+            <h2>Gantt Chart</h2>
+            <div id="ganttChart"></div>
+            <div id="timeline"></div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Process ID</th>
+                        <th>Arrival Time</th>
+                        <th>Burst Time</th>
+                        <th>Completion Time</th>
+                        <th>Waiting Time</th>
+                        <th>Turnaround Time</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody"></tbody>
+            </table>
+
+            <div class="metrics">
+                <div class="metric-box">
+                    <h3>Avg Waiting Time</h3>
+                    <p id="avgWaitingTime">0.00</p>
+                </div>
+                <div class="metric-box">
+                    <h3>Avg Turnaround Time</h3>
+                    <p id="avgTurnaroundTime">0.00</p>
+                </div>
+                <div class="metric-box">
+                    <h3>Throughput</h3>
+                    <p id="throughput">0.00</p>
+                </div>
+                <div class="metric-box">
+                    <h3>CPU Utilization</h3>
+                    <p id="cpuUtilization">0.00%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
