@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FarmFresh - Cart</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      padding-top: 70px;
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #28a745;
+      color: white;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      flex-wrap: wrap;
+    }
+
+    .navbar h1 {
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .navbar .nav-right {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+
+    .navbar a,
+    .navbar span {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: opacity 0.3s ease;
+    }
+
+    .navbar a:hover {
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 950px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      color: #28a745;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+
+    .cart-item {
+      display: grid;
+      grid-template-columns: 100px 1fr auto auto;
+      gap: 20px;
+      align-items: center;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 15px 0;
+    }
+
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+
+    .cart-item img {
+      width: 90px;
+      height: 90px;
+      object-fit: cover;
+      border-radius: 8px;
+      background-color: #eee;
+    }
+
+    .cart-item-details {
+      justify-self: start;
+    }
+
+    .cart-item-details h4 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #343a40;
+    }
+
+    .cart-item-details p {
+      font-size: 14px;
+      color: #6c757d;
+      margin-bottom: 3px;
+    }
+
+    .cart-item-price {
+      font-size: 16px;
+      font-weight: 600;
+      color: #28a745;
+    }
+
+    .btn-remove {
+      background-color: #dc3545;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-remove:hover {
+      background-color: #c82333;
+      transform: scale(1.05);
+    }
+
+    .total {
+      text-align: right;
+      font-size: 22px;
+      font-weight: 700;
+      margin-top: 30px;
+      color: #343a40;
+    }
+
+    .total span {
+      color: #28a745;
+    }
+
+    .btn-place {
+      background-color: #28a745;
+      color: white;
+      padding: 12px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      float: right;
+      margin-top: 25px;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-place:hover {
+      background-color: #218838;
+      transform: scale(1.02);
+    }
+
+    #cartItems p {
+      text-align: center;
+      font-size: 18px;
+      color: #6c757d;
+      padding: 40px 0;
+    }
+
+    /* Responsive Layout */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 15px 20px;
+      }
+
+      .navbar h1 {
+        font-size: 24px;
+      }
+
+      .navbar .nav-right {
+        gap: 15px;
+      }
+
+      .navbar a,
+      .navbar span {
+        font-size: 15px;
+      }
+
+      .container {
+        padding: 20px;
+        margin: 20px auto;
+      }
+
+      h2 {
+        font-size: 22px;
+        margin-bottom: 20px;
+      }
+
+      .cart-item {
+        grid-template-columns: 80px 1fr auto auto;
+        gap: 15px;
+        padding: 10px 0;
+      }
+
+      .cart-item img {
+        width: 70px;
+        height: 70px;
+      }
+
+      .cart-item-details h4 {
+        font-size: 16px;
+      }
+
+      .cart-item-price {
+        font-size: 15px;
+      }
+
+      .btn-remove {
+        padding: 6px 12px;
+        font-size: 13px;
+      }
+
+      .total {
+        font-size: 20px;
+        margin-top: 20px;
+      }
+
+      .btn-place {
+        padding: 10px 20px;
+        font-size: 15px;
+        margin-top: 15px;
+        float: none;
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 500px) {
+      .cart-item {
+        grid-template-columns: 1fr auto;
+      }
+
+      .cart-item img {
+        display: none;
+        /* Hide image on very small screens */
+      }
+
+      .cart-item-details {
+        margin-left: 0;
+      }
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .qty-control button {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .qty-control button:hover {
+      background-color: #218838;
+    }
+
+    .qty-control span {
+      font-size: 15px;
+      font-weight: 600;
+      min-width: 24px;
+      text-align: center;
+      display: inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar">
+    <h1>FarmFresh</h1>
+    <div class="nav-right" id="navRight">
+      <a href="/">Home</a>
+      <a href="/myorders">My Orders</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Your Cart</h2>
+    <div id="cartItems"></div>
+    <div class="total" id="totalAmount"></div>
+    <button class="btn-place" id="placeOrderBtn" style="display:none; margin-top: 50px; margin-bottom: 50px;">Place Order</button>
+  </div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    const navRight = document.getElementById("navRight");
+
+    if (!token) {
+      document.getElementById("cartItems").innerHTML = "<p>Please log in to view your cart.</p>";
+      navRight.innerHTML += '<a href="/login">Login</a><a href="/register">Register</a>';
+    } else {
+      loadUser();
+      loadCart();
+    }
+    async function updateQty(productId, newQty) {
+      if (newQty <= 0) {
+        if (confirm("Quantity is 0. Do you want to remove the item from the cart?")) {
+          return removeItem(productId);
+        } else {
+          return;
+        }
+      }
+
+      await fetch("http://localhost/farmfresh/api/cart/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, product_id: productId, quantity: newQty })
+      });
+
+      loadCart();
+    }
+
+
+    async function loadUser() {
+      const res = await fetch("http://localhost/farmfresh/api/getuser", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        navRight.innerHTML = `<a href="/">Home</a><a href="/myorders">My Orders</a> <a href="#" onclick="logout()">Logout</a>`;
+      } else {
+        logout();
+      }
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/";
+    }
+
+    async function loadCart() {
+      const res = await fetch("http://localhost/farmfresh/api/cart/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await res.json();
+      const cartItems = document.getElementById("cartItems");
+      const totalAmount = document.getElementById("totalAmount");
+      const placeBtn = document.getElementById("placeOrderBtn");
+
+      if (data.status === "success" && data.cart.length > 0) {
+        cartItems.innerHTML = "";
+        let total = data.total;
+
+        data.cart.forEach(item => {
+          cartItems.innerHTML += `
+            <div class="cart-item">
+              <img src="${item.image_url}" alt="${item.name}" onerror="this.onerror=null; this.src='images/placeholder.png';" />
+              <div class="cart-item-details">
+                <h4>${item.name}</h4>
+                <div class="qty-control">
+                  <button onclick="updateQty(${item.product_id}, ${item.quantity - 1})">-</button>
+                  <span>${item.quantity}</span>
+                  <button onclick="updateQty(${item.product_id}, ${item.quantity + 1})">+</button>
+                </div>
+              </div>
+              <p class="cart-item-price">₹${parseFloat(item.subtotal).toFixed(2)}</p>
+              <button class="btn-remove" onclick="removeItem(${item.product_id})">Remove</button>
+            </div>
+          `;
+        });
+
+        totalAmount.innerHTML = `Total: <span>₹${parseFloat(total).toFixed(2)}</span>`;
+        placeBtn.style.display = "inline-block";
+      } else {
+        cartItems.innerHTML = "<p>Your cart is empty.</p>";
+        totalAmount.innerHTML = "";
+        placeBtn.style.display = "none";
+      }
+    }
+
+    async function removeItem(productId) {
+      await fetch("http://localhost/farmfresh/api/cart/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, product_id: productId })
+      });
+      loadCart();
+    }
+
+    document.getElementById("placeOrderBtn").onclick = async () => {
+      window.location.href = '/placeorder';
+    };
+  </script>
+</body>
+
+</html>

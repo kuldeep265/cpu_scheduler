@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FarmFresh - Register</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basic Reset & Font */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding-top: 60px; /* Space for fixed navbar */
+    }
+
+    /* Enhanced Navbar (Same as Home Page) */
+    .navbar {
+      background-color: #28a745;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 100;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .navbar h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-right: auto;
+    }
+
+    .navbar .nav-right {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      transition: opacity 0.3s ease;
+      font-size: 16px;
+    }
+
+    .navbar a:hover {
+      opacity: 0.8;
+      text-decoration: none;
+    }
+
+    /* Register Box (Styled to match overall theme) */
+    .register-box {
+      background: white;
+      padding: 40px; /* Increased padding */
+      border-radius: 12px; /* More rounded corners */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      width: clamp(300px, 40%, 400px); /* Responsive width */
+      margin-top: 30px; /* Space from navbar */
+    }
+
+    .register-box h2 {
+      margin-bottom: 30px;
+      color: #28a745;
+      text-align: center;
+      font-weight: 700;
+      font-size: 24px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select,
+    button {
+      width: 100%;
+      padding: 12px 15px; /* Increased padding */
+      margin-top: 15px;
+      border: 1px solid #ced4da;
+      border-radius: 8px; /* More rounded corners */
+      font-size: 16px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: #28a745;
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2);
+    }
+
+    select {
+      appearance: none; /* Remove default arrow */
+      background-image: url('data:image/svg+xml;charset=UTF-8,<svg fill="%2328a745" viewBox="0 0 4 5"><path d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+      background-repeat: no-repeat;
+      background-position-x: 97%;
+      background-position-y: 50%;
+      padding-right: 25px; /* Space for custom arrow */
+    }
+
+    button {
+      background: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      padding: 12px 20px;
+      border-radius: 8px;
+    }
+
+    button:hover {
+      background: #218838;
+      transform: scale(1.02);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .error {
+      color: #dc3545;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+  </style>
+
+  <script>
+    // Redirect if already logged in
+    (function () {
+      const token = document.cookie.match(/(^| )token=([^;]+)/);
+      if (token) {
+        window.location.href = "/";
+      }
+    })();
+  </script>
+</head>
+<body>
+  <nav class="navbar">
+    <h1>FarmFresh</h1>
+    <div class="nav-right">
+      <a href="/">Home</a>
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+    </div>
+  </nav>
+  <div class="register-box">
+    <h2>Register to FarmFresh</h2>
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required />
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <select id="role" required>
+        <option value="customer">Customer</option>
+        <option value="farmer">Farmer</option>
+      </select>
+      <button type="submit">Register</button>
+      <p class="error" id="errorMsg"></p>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById("registerForm").onsubmit = async function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById("name").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const role = document.getElementById("role").value;
+      const errorMsg = document.getElementById("errorMsg");
+
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, email, password, role })
+        });
+
+        const data = await res.json();
+
+        if (data.status === "success") {
+          document.cookie = `token=${data.token}; path=/;`;
+          window.location.href = "/";
+        } else {
+          errorMsg.textContent = data.message;
+        }
+      } catch (err) {
+        errorMsg.textContent = "Registration failed. Try again."+err;
+      }
+    };
+  </script>
+</body>
+</html>

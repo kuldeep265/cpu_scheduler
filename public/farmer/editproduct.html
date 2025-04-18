@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Product - FarmFresh</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basic Reset & Font */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+      margin: 0;
+      padding-top: 70px; /* Adjust for fixed navbar height */
+    }
+
+    /* Enhanced Navbar */
+    .navbar {
+      background-color: #28a745;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      flex-wrap: wrap;
+      gap: 10px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .navbar h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-right: auto;
+    }
+
+    .navbar .nav-right {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .navbar a,
+    .navbar .logout-link {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+
+    .navbar a:hover,
+    .navbar .logout-link:hover {
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 30px auto; /* Adjust top margin for content below navbar */
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      color: #28a745;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    .toast {
+      visibility: hidden;
+      background-color: #3c83e6;
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-weight: bold;
+    }
+
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.4s, fadeout 0.4s 2s;
+    }
+
+    @keyframes fadein {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeout {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <h1>FarmFresh</h1>
+    <div class="nav-right" id="navbarRight">
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Edit Product</h2>
+    <form id="editForm">
+      <label for="name">Product Name</label>
+      <input type="text" id="name" required />
+
+      <label for="description">Description</label>
+      <textarea id="description" rows="4" required></textarea>
+
+      <label for="price">Price (₹)</label>
+      <input type="number" id="price" step="0.01" required />
+
+      <label for="quantity">Quantity</label>
+      <input type="number" id="quantity" required />
+
+      <label for="image_url">Image URL</label>
+      <input type="text" id="image_url" />
+
+      <button type="submit">Update Product</button>
+    </form>
+  </div>
+
+  <div class="toast" id="toast">Product updated successfully</div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    const productId = window.location.pathname.split("/").pop();
+    const navbarRight = document.getElementById("navbarRight");
+    const toastElement = document.getElementById("toast");
+
+    if (!token || !productId) {
+      alert("Unauthorized access or invalid product ID.");
+      window.location.href = "/login";
+    } else {
+      loadUser();
+    }
+
+    async function loadUser() {
+      if (!token) {
+        navbarRight.innerHTML = `<a href="/">Home</a> <a href="/login">Login</a> <a href="/register">Register</a>`;
+        return;
+      }
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/getuser", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json();
+        if (data.status === 'success' && data.user) {
+          const role = data.user.role;
+          if (role === 'farmer') {
+            navbarRight.innerHTML = `
+            <a href="/farmer/dashboard">Dashboard</a>
+            <a href="/addproduct">Add Product</a>
+            <a href="/farmer/orders">Orders</a>
+            <a href="/farmer/myproducts">My Products</a>
+            <a href="#" onclick="logout()">Logout</a>
+            `;
+          } else {
+            window.location.href = "/";
+          }
+        } else {
+          logout();
+        }
+      } catch (error) {
+        console.error("Error loading user:", error);
+        logout();
+      }
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/";
+    }
+
+    function showToast(message) {
+      toastElement.textContent = message;
+      toastElement.className = "toast show";
+      setTimeout(() => {
+        toastElement.className = toastElement.className.replace("show", "");
+        setTimeout(() => {
+          window.location.href = '/farmer/dashboard';
+        }, 400);
+      }, 800);
+    }
+
+    async function loadProduct() {
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/products/getone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, product_id: productId })
+        });
+        const data = await res.json();
+        if (data.status === "success" && data.data) {
+          const p = data.data;
+          document.getElementById("name").value = p.name || '';
+          document.getElementById("description").value = p.description || '';
+          document.getElementById("price").value = p.price || '';
+          document.getElementById("quantity").value = p.quantity || '';
+          document.getElementById("image_url").value = p.image_url || '';
+        } else {
+          alert("Product not found.");
+          window.location.href = "/farmer/dashboard";
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Failed to load product details.");
+      }
+    }
+
+    document.getElementById("editForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const updatedData = {
+        token,
+        product_id: productId,
+        name: document.getElementById("name").value,
+        description: document.getElementById("description").value,
+        price: parseFloat(document.getElementById("price").value),
+        quantity: parseInt(document.getElementById("quantity").value),
+        image_url: document.getElementById("image_url").value
+      };
+
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/products/update", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData)
+        });
+
+        const data = await res.json();
+        if (data.status === "success") {
+          showToast("Product updated successfully!");
+          // Redirection is now handled within showToast after the timeout
+        } else {
+          alert("Failed to update product: " + data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        alert("An error occurred while updating the product.");
+      }
+    });
+
+    loadProduct();
+  </script>
+</body>
+</html>

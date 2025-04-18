@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Dashboard - FarmFresh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background-color: #28a745;
+      color: white;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 22pt;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 10px 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar a:hover {
+      opacity: 0.8;
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: 230px;
+      flex: 1;
+      padding: 30px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+      color: #28a745;
+    }
+
+    .topbar button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background-color: white;
+      border-radius: 10px;
+      padding: 25px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+
+    .card h4 {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    .card .value {
+      font-size: 28px;
+      font-weight: 700;
+      color: #28a745;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 20px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
+    .full-width-cards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-top: 40px;
+    }
+
+    .highlight-card {
+      flex: 1 1 100%;
+      background-color: #fff;
+      border-left: 6px solid #28a745;
+      padding: 25px 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .highlight-card h4 {
+      font-size: 18px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    .highlight-card p {
+      font-size: 26px;
+      font-weight: bold;
+      color: #28a745;
+      margin: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>FarmFresh</h2>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/products">Products</a>
+    <a href="/admin/orders">Orders</a>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Admin Dashboard</h1>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="card">
+        <h4>Total Users</h4>
+        <div class="value" id="totalUsers">--</div>
+      </div>
+      <div class="card">
+        <h4>Total Products</h4>
+        <div class="value" id="totalProducts">--</div>
+      </div>
+      <div class="card">
+        <h4>Total Orders</h4>
+        <div class="value" id="totalOrders">--</div>
+      </div>
+      <div class="card">
+        <h4>Total Revenue</h4>
+        <div class="value" id="totalRevenue">--</div>
+      </div>
+    </div>
+    <!-- Full-Width Cards Section -->
+    <div class="full-width-cards">
+
+      <div class="highlight-card">
+        <h4>📦 Pending Orders</h4>
+        <p id="pendingOrdersHighlight">--</p>
+      </div>
+
+      <div class="highlight-card">
+        <h4>📅 Revenue This Month</h4>
+        <p id="monthlyRevenueHighlight">--</p>
+      </div>
+
+      <div class="highlight-card">
+        <h4>🏆 Top Product This Month</h4>
+        <p id="topProductHighlight">--</p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    if (!token) {
+      alert("Access denied. Please login.");
+      window.location.href = "/login";
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/login";
+    }
+
+    async function loadAdminDashboard() {
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/dashboard/adminsummary", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+
+        if (data.status === "success" && data.data) {
+          const { total_users, total_products, total_orders, total_revenue,pending_orders,monthly_revenue,top_products } = data.data;
+
+          document.getElementById("totalUsers").textContent = total_users;
+          document.getElementById("totalProducts").textContent = total_products;
+          document.getElementById("totalOrders").textContent = total_orders;
+          document.getElementById("totalRevenue").textContent = "₹" + parseFloat(total_revenue).toFixed(2);
+          document.getElementById("pendingOrdersHighlight").textContent = pending_orders;
+          document.getElementById("monthlyRevenueHighlight").textContent = "₹" + parseFloat(monthly_revenue).toFixed(2);
+          document.getElementById("topProductHighlight").textContent = top_products.length ? top_products[0].name + " (" + top_products[0].total_sold + " sold)" : "No data";
+        } else {
+          alert("Failed to load admin data.");
+        }
+      } catch (err) {
+        console.error("Admin dashboard fetch failed:", err);
+        alert("Something went wrong while fetching admin summary.");
+      }
+    }
+
+    loadAdminDashboard();
+  </script>
+
+
+</body>
+
+</html>

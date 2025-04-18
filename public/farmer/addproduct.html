@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>Add Product - FarmFresh</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Basic Reset & Font */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif; /* Consistent font */
+      background-color: #f8f9fa; /* Consistent light background */
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Consistent Navbar */
+    .navbar {
+      background-color: #28a745; /* Consistent green */
+      color: white;
+      padding: 15px 40px; /* Consistent padding */
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Consistent shadow */
+    }
+
+    .navbar h2 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 24px; /* Standard size */
+    }
+
+    .navbar div { /* Container for links */
+        display: flex;
+        align-items: center;
+        gap: 25px; /* Space out links */
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600; /* Slightly bolder */
+      transition: opacity 0.3s ease;
+      font-size: 16px;
+    }
+
+    .navbar a:hover {
+      opacity: 0.8;
+    }
+
+    /* Form Container Styling */
+    .form-container {
+      max-width: 700px; /* Slightly wider for better form layout */
+      margin: 40px auto; /* Consistent margin */
+      background: white;
+      padding: 40px; /* Generous padding */
+      border-radius: 12px; /* Consistent radius */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); /* Consistent shadow */
+    }
+
+    /* Form Heading */
+    .form-container h2 {
+      text-align: center;
+      font-size: 24px; /* Good size for form title */
+      font-weight: 700;
+      color: #343a40; /* Darker heading color */
+      margin-bottom: 30px; /* More space below heading */
+    }
+
+    /* Consistent Input/Textarea Styling */
+    .form-container input[type="text"],
+    .form-container input[type="number"],
+    .form-container textarea {
+      display: block;
+      width: 100%;
+      padding: 12px 15px;
+      margin-bottom: 20px; /* Increased spacing */
+      border: 1px solid #ced4da; /* Softer border */
+      border-radius: 6px; /* Rounded corners */
+      font-size: 15px;
+      font-family: inherit; /* Use Poppins */
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .form-container textarea {
+        resize: vertical;
+        min-height: 100px; /* Decent default height */
+    }
+
+    .form-container input:focus,
+    .form-container textarea:focus {
+      outline: none;
+      border-color: #28a745; /* Highlight border on focus */
+      box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.2); /* Glow effect */
+    }
+
+    /* Consistent Button Styling */
+    .form-container button[type="submit"] {
+      display: block; /* Ensure it takes full width */
+      width: 100%;
+      background-color: #28a745; /* Brand green */
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      margin-top: 10px; /* Space above button */
+    }
+
+    .form-container button[type="submit"]:hover {
+      background-color: #218838; /* Darker green on hover */
+      transform: scale(1.02); /* Slight scale effect */
+    }
+
+     .form-container button[type="submit"]:active {
+        transform: scale(0.99); /* Click effect */
+    }
+
+    /* Styled Toast Notification */
+    .toast {
+      visibility: hidden; /* Start hidden */
+      min-width: 280px; /* Slightly wider */
+      background-color: #3c83e6; /* Success color (blue) */
+      color: white;
+      text-align: center;
+      border-radius: 8px; /* Match container radius */
+      padding: 15px 20px; /* More padding */
+      position: fixed;
+      z-index: 1000; /* Ensure it's on top */
+      left: 50%;
+      bottom: 30px; /* Position from bottom */
+      transform: translateX(-50%); /* Center horizontally */
+      font-family: 'Poppins', sans-serif; /* Use consistent font */
+      font-weight: 600;
+      font-size: 15px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* Add shadow */
+      opacity: 0; /* Start transparent for fade-in */
+      transition: opacity 0.5s, bottom 0.5s, visibility 0.5s ease; /* Smooth transitions */
+    }
+
+    /* Toast states */
+     .toast.show {
+      visibility: visible;
+      opacity: 1;
+      bottom: 40px; /* Animate upwards */
+    }
+
+    .toast.error {
+      background-color: #dc3545; /* Error color (red) */
+    }
+
+    /* Remove keyframes as transition handles the fade/move */
+
+     /* Responsive Adjustments */
+     @media (max-width: 768px) {
+        .navbar {
+            padding: 15px 20px;
+            flex-direction: column;
+            gap: 10px;
+        }
+         .navbar div {
+             justify-content: center;
+             flex-wrap: wrap;
+         }
+        .form-container {
+            margin: 20px 15px; /* Less margin on mobile */
+            padding: 30px 25px; /* Adjust padding */
+        }
+         .form-container h2 {
+             font-size: 22px;
+         }
+     }
+
+  </style>
+</head>
+<body>
+  <div class="navbar">
+    <h2>FarmFresh</h2>
+    <div>
+      <a href="/farmer/dashboard">Dashboard</a>
+      <a href="/addproduct">Add Product</a>
+      <a href="/farmer/orders">Orders</a>
+      <a href="/farmer/myproducts">My Products</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <h2>Enter Product Details</h2> <form id="addProductForm">
+      <input type="text" id="name" name="name" placeholder="Product Name (e.g., Organic Apples)" required />
+      <textarea id="description" name="description" placeholder="Detailed Description (e.g., Freshly picked, juicy, grown without pesticides...)" rows="4" required></textarea>
+      <input type="number" id="price" name="price" placeholder="Price per unit (₹)" step="0.01" min="0" required />
+      <input type="number" id="quantity" name="quantity" placeholder="Available Stock Quantity" min="0" required />
+      <input type="text" id="image_url" name="image_url" placeholder="Image URL (e.g., images/apples.jpg)" required />
+      <button type="submit" id="submitButton">Add Product</button>
+    </form>
+  </div>
+
+  <div id="toast" class="toast">Message goes here</div>
+
+  <script>
+    function logout() {
+      // Clear the token cookie
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      // Redirect to login page (ensure correct path)
+      window.location.href = "/login";
+    }
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    if (!token) {
+      alert("Access denied. Please log in as a farmer to add products.");
+      window.location.href = "/login"; // Redirect if not logged in
+    }
+
+    const toastElement = document.getElementById("toast");
+    let toastTimeout; // To manage the timeout
+
+    function showToast(message, isError = false) {
+        // Clear any existing timeout to prevent overlaps
+        if (toastTimeout) {
+            clearTimeout(toastTimeout);
+        }
+
+        toastElement.textContent = message;
+        // Add 'error' class if it's an error message
+        toastElement.className = `toast show ${isError ? 'error' : ''}`;
+
+        // Set timeout to hide the toast after 3 seconds
+        toastTimeout = setTimeout(() => {
+            toastElement.className = toastElement.className.replace(" show", "");
+            // Reset timeout ID
+            toastTimeout = null;
+        }, 3000); // 3 seconds duration
+    }
+
+
+    document.getElementById("addProductForm").addEventListener("submit", async function (e) {
+      e.preventDefault(); // Prevent default submission
+
+      const submitButton = document.getElementById('submitButton');
+      submitButton.disabled = true; // Disable button to prevent multiple submissions
+      submitButton.textContent = 'Adding...'; // Provide visual feedback
+
+      // Get form data (using name attributes can be handy)
+      const name = document.getElementById("name").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const price = document.getElementById("price").value;
+      const quantity = document.getElementById("quantity").value;
+      const image_url = document.getElementById("image_url").value.trim();
+
+      // Basic client-side validation
+      if (!name || !description || !price || !quantity || !image_url) {
+          showToast("Please fill in all fields.", true); // Show error toast
+          submitButton.disabled = false;
+          submitButton.textContent = 'Add Product';
+          return;
+      }
+       if (parseFloat(price) < 0 || parseInt(quantity) < 0) {
+           showToast("Price and Quantity cannot be negative.", true);
+            submitButton.disabled = false;
+            submitButton.textContent = 'Add Product';
+           return;
+       }
+
+      try {
+          const res = await fetch("http://localhost/farmfresh/api/products/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token, name, description, price, quantity, image_url })
+          });
+
+          if (!res.ok) {
+              // Try to get error message from response body if possible
+              let errorMsg = `HTTP error! status: ${res.status}`;
+              try {
+                  const errorData = await res.json();
+                  errorMsg = errorData.message || errorMsg;
+              } catch (jsonError) {
+                  // Ignore if response is not JSON
+              }
+              throw new Error(errorMsg);
+          }
+
+          const data = await res.json();
+
+          if (data.status === "success") {
+            showToast("Product added successfully!");
+            e.target.reset(); // Clear the form
+          } else {
+             // Handle specific API error messages
+            showToast(`Failed to add product: ${data.message || "Unknown API error"}`, true);
+          }
+
+      } catch (err) {
+          console.error("Error adding product:", err);
+          // Show generic error toast for network or other unexpected errors
+          showToast(`An error occurred: ${err.message}`, true);
+      } finally {
+           // Re-enable the button regardless of success or failure
+           submitButton.disabled = false;
+           submitButton.textContent = 'Add Product';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Farmer Orders - FarmFresh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+    }
+
+    .navbar {
+      background-color: #28a745;
+      color: white;
+      padding: 15px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .navbar h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 30px auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    }
+
+    h3 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #28a745;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f1f1f1;
+      text-align: left;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status {
+      text-transform: capitalize;
+      font-weight: 600;
+    }
+
+    .status.delivered {
+      color: green;
+    }
+
+    .status.pending {
+      color: orange;
+    }
+
+    .status.cancelled {
+      color: red;
+    }
+
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #3c83e6;
+      color: white;
+      text-align: center;
+      border-radius: 6px;
+      padding: 12px;
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @keyframes fadein {
+      from {
+        bottom: 10px;
+        opacity: 0;
+      }
+
+      to {
+        bottom: 30px;
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeout {
+      from {
+        bottom: 30px;
+        opacity: 1;
+      }
+
+      to {
+        bottom: 10px;
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="navbar">
+    <h2>FarmFresh</h2>
+    <div>
+      <a href="/farmer/dashboard">Dashboard</a>
+      <a href="/addproduct">Add Product</a>
+      <a href="/farmer/orders">Orders</a>
+      <a href="/farmer/myproducts">My Products</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h3>My Orders</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Product</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>      
+      <tbody id="orderList">
+        <tr>
+          <td colspan="9" style="text-align: center; color: #999;">Loading orders...</td>
+        </tr>
+      </tbody>
+
+    </table>
+  </div>
+
+  <div id="toast" class="toast">Loaded orders</div>
+  <!-- Add this in <body> just below the toast div -->
+  <div id="statusModal"
+    style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5); z-index:2000; justify-content:center; align-items:center;">
+    <div
+      style="background:#fff; padding:20px 30px; border-radius:10px; box-shadow:0 0 15px rgba(0,0,0,0.2); width:300px; text-align:center;">
+      <h4 style="margin-bottom: 20px;">Update Status</h4>
+      <select id="statusSelect" style="padding:8px; width:100%; border-radius:6px; font-size:14px; margin-bottom:15px;">
+        <!-- Options will be added dynamically -->
+      </select>
+      <div style="display:flex; justify-content:space-between;">
+        <button onclick="confirmStatusChange()"
+          style="padding:8px 12px; background:#28a745; border:none; color:white; border-radius:5px; font-weight:600;">Update</button>
+        <button onclick="closeModal()"
+          style="padding:8px 12px; background:#ccc; border:none; color:black; border-radius:5px; font-weight:500;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    let selectedOrderId = null;
+    let currentStatus = null;
+
+    if (!token) {
+      alert("Please login as a farmer to access orders.");
+      window.location.href = "/login";
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/login";
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3000);
+    }
+
+    function openStatusModal(orderId, status) {
+      selectedOrderId = orderId;
+      currentStatus = status;
+
+      const select = document.getElementById("statusSelect");
+      select.innerHTML = "";
+
+      if (status === "pending") {
+        select.innerHTML = `<option value="confirmed">Confirmed</option>`;
+      } else if (status === "confirmed") {
+        select.innerHTML = `<option value="delivered">Delivered</option>`;
+      }
+
+      document.getElementById("statusModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("statusModal").style.display = "none";
+    }
+
+    async function confirmStatusChange() {
+      const newStatus = document.getElementById("statusSelect").value;
+      if (!selectedOrderId || !newStatus) return;
+
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/orders/updatestatus", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token, order_id: selectedOrderId, status: newStatus })
+        });
+
+        const data = await res.json();
+        if (data.status === "success") {
+          showToast("Status updated.");
+          closeModal();
+          loadOrders();
+        } else {
+          alert("Failed to update status: " + (data.message || "Unknown error"));
+        }
+      } catch (err) {
+        console.error("Update error:", err);
+        alert("An error occurred.");
+      }
+    }
+
+    async function loadOrders() {
+      const list = document.getElementById("orderList");
+      list.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#666;">Loading...</td></tr>`;
+
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/orders/farmerorders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+        list.innerHTML = "";
+
+        if (data.status === "success" && data.orders?.length) {
+          data.orders.forEach(order => {
+            const {
+              order_id,
+              customer_name,
+              created_at,
+              status,
+              items,
+              address,
+              mobile
+            } = order;
+
+            items.forEach(item => {
+              const row = document.createElement("tr");
+              const statusBtn = (status === "pending" || status === "confirmed")
+                ? `<button onclick="openStatusModal(${order_id}, '${status}')" style="margin-top:5px; padding:4px 8px; font-size:12px; border:none; background:#ffc107; color:#222; border-radius:4px; cursor:pointer; margin-left: 10px">Update</button>`
+                : "";
+
+                row.innerHTML = `
+                  <td>#${order_id}</td>
+                  <td>${customer_name}</td>
+                  <td>${mobile || 'N/A'}</td>
+                  <td style="white-space: normal; word-wrap: break-word;">${address || 'N/A'}</td>
+                  <td>${item.product_name}</td>
+                  <td>${item.quantity}</td>
+                  <td>₹${parseFloat(item.price).toFixed(2)}</td>
+                  <td class="status ${status}">${status}${statusBtn}</td>
+                  <td>${new Date(created_at).toLocaleDateString()}</td>
+                `;
+              list.appendChild(row);
+            });
+          });
+
+
+          showToast("Orders loaded.");
+        } else {
+          list.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#999;">No orders yet.</td></tr>`;
+        }
+      } catch (err) {
+        console.error("Failed to load orders:", err);
+        list.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Failed to fetch orders.</td></tr>`;
+      }
+    }
+
+    loadOrders();
+  </script>
+
+</body>
+
+</html>

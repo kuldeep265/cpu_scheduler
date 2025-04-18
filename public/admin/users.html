@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Users | FarmFresh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      display: flex;
+    }
+
+    .sidebar {
+      width: 230px;
+      background-color: #28a745;
+      color: white;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 22pt;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 10px 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar a:hover {
+      opacity: 0.8;
+    }
+
+    .main {
+      margin-left: 230px;
+      padding: 30px;
+      flex: 1;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+      color: #28a745;
+    }
+
+    .topbar button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .table-wrapper {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead {
+      background-color: #f1f1f1;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      text-align: left;
+    }
+
+    tbody tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .role-badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .admin { background-color: #ffc107; color: #333; }
+    .customer { background-color: #007bff; color: white; }
+    .farmer { background-color: #20c997; color: white; }
+
+    .loading {
+      text-align: center;
+      color: #888;
+      padding: 20px;
+    }
+
+    @media (max-width: 768px) {
+      .main { padding: 20px; margin-left: 0; }
+      .sidebar { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>FarmFresh</h2>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/products">Products</a>
+    <a href="/admin/orders">Orders</a>
+  </div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <h1>All Users</h1>
+      <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+          <tr><td colspan="5" class="loading">Loading users...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    if (!token) {
+      alert("Access denied. Please login as admin.");
+      window.location.href = "/login";
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/login";
+    }
+
+    async function loadUsers() {
+      const tbody = document.getElementById("userTable");
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/dashboard/userslist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+        tbody.innerHTML = "";
+
+        if (data.status === "success") {
+          data.users.forEach(user => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td>${user.id}</td>
+              <td>${user.name}</td>
+              <td>${user.email}</td>
+              <td><span class="role-badge ${user.role}">${user.role}</span></td>
+              <td>${new Date(user.created_at).toLocaleDateString()}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="5" class="loading">Failed to load users</td></tr>`;
+        }
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        tbody.innerHTML = `<tr><td colspan="5" class="loading">Server error</td></tr>`;
+      }
+    }
+
+    loadUsers();
+  </script>
+
+</body>
+</html>

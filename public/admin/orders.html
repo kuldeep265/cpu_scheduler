@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Orders - FarmFresh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      min-height: 100vh;
+      background-color: #f8f9fa;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background-color: #28a745;
+      color: white;
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+    }
+
+    .sidebar h2 {
+      font-size: 22pt;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 10px 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar a:hover {
+      opacity: 0.8;
+    }
+
+    /* Main */
+    .main {
+      margin-left: 230px;
+      flex: 1;
+      padding: 30px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+      color: #28a745;
+    }
+
+    .topbar button {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background-color: #f1f1f1;
+      text-align: left;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status {
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+
+    .status.pending {
+      color: orange;
+    }
+
+    .status.delivered {
+      color: green;
+    }
+
+    .status.cancelled {
+      color: red;
+    }
+
+    .status.confirmed {
+      color: #007bff;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .main {
+        margin-left: 0;
+        padding: 20px;
+      }
+
+      table {
+        font-size: 13px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>FarmFresh</h2>
+    <a href="/admin/dashboard">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/products">Products</a>
+    <a href="/admin/orders">Orders</a>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1>Orders</h1>
+      <button onclick="logout()">Logout</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="orderTableBody">
+        <tr>
+          <td colspan="8" style="text-align:center; color: #888;">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    if (!token) {
+      alert("Please login as admin.");
+      window.location.href = "/login";
+    }
+  
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/login";
+    }
+  
+    async function loadOrders() {
+      const tableBody = document.getElementById("orderTableBody");
+      tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: #888;">Loading...</td></tr>`;
+  
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/dashboard/orderslist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+  
+        const data = await res.json();
+        tableBody.innerHTML = "";
+  
+        if (data.status === "success" && data.orders?.length) {
+          data.orders.forEach(order => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>#${order.order_id}</td>
+              <td>${order.customer_name}</td>
+              <td>${order.customer_email}</td>
+              <td>${order.mobile || 'N/A'}</td>
+              <td>${order.address || 'N/A'}</td>
+              <td class="status ${order.status}">${order.status}</td>
+              <td>₹${parseFloat(order.total_price).toFixed(2)}</td>
+              <td>${new Date(order.created_at).toLocaleDateString()}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } else {
+          tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: #aaa;">No orders found.</td></tr>`;
+        }
+      } catch (err) {
+        console.error("Error fetching orders:", err);
+        tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: red;">Failed to fetch orders.</td></tr>`;
+      }
+    }
+  
+    loadOrders();
+  </script>
+</body>
+
+</html>

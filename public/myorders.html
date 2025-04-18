@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Orders - FarmFresh</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      padding-top: 70px;
+    }
+
+    .navbar {
+      background-color: #28a745;
+      padding-left: 40px;
+      padding-right: 40px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+
+    .navbar h1 {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      text-align: center;
+      color: #28a745;
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 30px;
+    }
+
+    .order-box {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      padding: 20px;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .order-items {
+      margin-top: 10px;
+    }
+
+    .order-items p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+
+    .status {
+      text-transform: capitalize;
+      font-weight: bold;
+    }
+
+    .status.pending { color: orange; }
+    .status.confirmed { color: #007bff; }
+    .status.delivered { color: green; }
+    .status.cancelled { color: red; }
+
+    .total {
+      margin-top: 12px;
+      font-weight: bold;
+      color: #28a745;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <h1>FarmFresh</h1>
+    <div>
+      <a href="/">Home</a>
+      <a href="/myorders">My Orders</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>My Orders</h2>
+    <div id="orderList">
+      <p style="text-align:center; color:#888;">Loading orders...</p>
+    </div>
+  </div>
+
+  <script>
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+
+    if (!token) {
+      alert("Please login to view orders.");
+      window.location.href = "/login";
+    }
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/";
+    }
+
+    async function loadOrders() {
+      const container = document.getElementById("orderList");
+      try {
+        const res = await fetch("http://localhost/farmfresh/api/orders/myorders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token })
+        });
+
+        const data = await res.json();
+        container.innerHTML = "";
+
+        if (data.status === "success" && data.orders?.length) {
+          data.orders.forEach(order => {
+            let itemsHTML = "";
+            order.items.forEach(item => {
+              itemsHTML += `<p>${item.name} x ${item.quantity} — ₹${item.price}</p>`;
+            });
+
+            container.innerHTML += `
+              <div class="order-box">
+                <div class="order-header">
+                  <span>Order #${order.id}</span>
+                  <span class="status ${order.status}">${order.status}</span>
+                </div>
+                <div style="margin-bottom:10px;">${new Date(order.created_at).toLocaleDateString()}</div>
+                <div class="order-items">${itemsHTML}</div>
+                <div class="total">Total: ₹${parseFloat(order.total_price).toFixed(2)}</div>
+              </div>
+            `;
+          });
+        } else {
+          container.innerHTML = `<p style="text-align:center; color:#aaa;">No orders found.</p>`;
+        }
+      } catch (err) {
+        console.error("Error loading orders:", err);
+        container.innerHTML = `<p style="text-align:center; color:red;">Failed to load orders.</p>`;
+      }
+    }
+
+    loadOrders();
+  </script>
+</body>
+</html>

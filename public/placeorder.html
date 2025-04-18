@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FarmFresh - Place Order</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    /* Inherit the cart page's design */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f8f9fa;
+      padding-top: 70px;
+      /* Adjust for fixed navbar height */
+      color: #333;
+    }
+
+    .navbar {
+      background-color: #28a745;
+      color: white;
+      padding-left: 30px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      flex-wrap: wrap;
+      /* Enable wrapping for smaller screens */
+    }
+
+    .navbar h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-right: 60vw;
+    }
+
+    .navbar .nav-right {
+      display: flex;
+      gap: 15px;
+      /* Reduced gap between navigation items */
+      align-items: center;
+      flex-wrap: wrap;
+      /* Enable wrapping of navigation links */
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 16px;
+      padding: 8px 12px;
+      /* Add some padding to the links */
+      border-radius: 6px;
+      /* Optional: Add rounded corners to links */
+    }
+
+    .navbar a:hover {
+      opacity: 0.8;
+      background-color: rgba(0, 0, 0, 0.1);
+      /* Optional: Add hover background */
+    }
+
+    .container {
+      max-width: 700px;
+      margin: 30px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    h2 {
+      color: #28a745;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    .cart-summary {
+      margin-top: 30px;
+      padding: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    .cart-summary h3 {
+      font-size: 18px;
+      color: #28a745;
+      margin-top: 0;
+      margin-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+      padding-bottom: 8px;
+    }
+
+    .cart-summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .cart-summary-item:last-child {
+      border-bottom: none;
+    }
+
+    .total {
+      font-size: 20px;
+      font-weight: bold;
+      color: #28a745;
+      margin-top: 20px;
+      text-align: right;
+    }
+
+    .btn-place {
+      background-color: #28a745;
+      color: white;
+      padding: 14px 25px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      float: right;
+      font-weight: 600;
+      margin-top: 55px;
+      margin-bottom: 55px;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .btn-place:hover {
+      background-color: #218838;
+      transform: scale(1.02);
+    }
+
+    .message {
+      text-align: center;
+      font-size: 16px;
+      color: red;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <h1>FarmFresh</h1>
+    <div class="nav-right" id="navRight">
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>Complete Your Order</h2>
+
+    <div class="form-group">
+      <label for="address">Delivery Address</label>
+      <input type="text" id="address" placeholder="Enter your full address..." />
+    </div>
+
+    <div class="form-group">
+      <label for="mobile">Mobile Number</label>
+      <input type="tel" id="mobile" placeholder="Enter your contact number..."
+        oninput="this.value = this.value.replace(/[^0-9]/g, '');" maxlength="10" />
+    </div>
+
+    <div class="cart-summary" id="cartSummary">
+      <h3>Order Summary</h3>
+    </div>
+    <div class="total" id="totalAmount">Total: ₹0.00</div>
+
+    <button class="btn-place" onclick="placeOrder()">Place Order</button>
+    <div class="message" id="message"></div>
+  </div>
+  <div id="toast" style="
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #3c83e6;
+    color: white;
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    z-index: 9999;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    ">Toast message
+  </div>
+  <script>
+    const RAZORPAY_KEY = 'rzp_test_4lF84FAK3EkxMx';
+    const RAZORPAY_SECRET = 'Cj7bpsQoqqfz1wjmCQTufB9L';
+    const token = document.cookie.match(/(^| )token=([^;]+)/)?.[2];
+    let cartItems = [];
+    let total = 0;
+    const navRight = document.getElementById('navRight');
+
+    function updateNavbar() {
+      if (token) {
+        navRight.innerHTML = '<a href="/">Home</a> <a href="/cart">Cart</a> <a href="#" onclick="logout()">Logout</a>';
+      } else {
+        navRight.innerHTML = '<a href="/">Home</a> <a href="/login">Login</a> <a href="/register">Register</a>';
+      }
+    }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById("toast");
+      toast.style.backgroundColor = isError ? "#dc3545" : "#3c83e6";
+      toast.textContent = message;
+      toast.style.visibility = "visible";
+      toast.style.opacity = "1";
+
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.visibility = "hidden";
+      }, 3000);
+    }
+
+    async function loadCart() {
+      const res = await fetch("http://localhost/farmfresh/api/cart/view", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+
+      const data = await res.json();
+      const summary = document.getElementById("cartSummary");
+      const totalDisplay = document.getElementById("totalAmount");
+
+      if (data.status === "success" && data.cart.length > 0) {
+        cartItems = data.cart;
+        total = data.total;
+        summary.innerHTML = "<h3>Order Summary</h3>";
+
+        cartItems.forEach(item => {
+          summary.innerHTML += `
+            <div class="cart-summary-item">
+              <span>${item.name} × ${item.quantity}</span>
+              <span>₹${parseFloat(item.subtotal).toFixed(2)}</span>
+            </div>
+          `;
+        });
+
+        totalDisplay.innerHTML = `Total: ₹${total.toFixed(2)}`;
+      } else {
+        summary.innerHTML = "<h3>Order Summary</h3><p>Your cart is empty.</p>";
+        totalDisplay.innerHTML = "";
+        document.querySelector(".btn-place").style.display = "none";
+      }
+    }
+    async function placeOrder() {
+      const address = document.getElementById("address").value.trim();
+      const mobile = document.getElementById("mobile").value.trim();
+
+      if (!address || !mobile) {
+        showToast("Please fill in both address and mobile number.", true);
+        return;
+      }
+
+      // Base64-encode your credentials (KEY_ID:KEY_SECRET)
+      const credentials = btoa(`${RAZORPAY_KEY}:${RAZORPAY_SECRET}`);
+
+      // Step 1: Create Order
+      const createOrder = await fetch("http://localhost/farmfresh/api/createorder", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: total })
+      });
+
+      const orderData = await createOrder.json();
+
+      if (!orderData.id) {
+        showToast("Failed to create Razorpay order.", true);
+        return;
+      }
+
+      const options = {
+        key: 'rzp_test_4lF84FAK3EkxMx',
+        amount: orderData.amount,
+        currency: "INR",
+        name: "FarmFresh",
+        description: "Payment for your order",
+        order_id: orderData.id,
+        handler: async function (response) {
+          // After successful payment, place order in backend
+          const placeRes = await fetch("http://localhost/farmfresh/api/orders/place", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              token,
+              address,
+              mobile,
+              items: cartItems.map(item => ({
+                product_id: item.product_id,
+                quantity: item.quantity
+              })),
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature
+            })
+          });
+
+          const placeData = await placeRes.json();
+          if (placeData.status === "success") {
+            showToast("Order placed successfully!");
+            setTimeout(() => window.location.href = "/", 1000);
+          } else {
+            showToast("Order failed after payment.", true);
+          }
+        },
+        prefill: {
+          contact: mobile
+        },
+        theme: {
+          color: "#28a745"
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+
+
+    // async function placeOrder() {
+    //   const address = document.getElementById("address").value.trim();
+    //   const mobile = document.getElementById("mobile").value.trim();
+    //   const message = document.getElementById("message");
+    //   if (!address || !mobile) {
+    //     showToast("Please fill in both address and mobile number.", true);
+    //     return;
+    //   }
+    //   const items = cartItems.map(item => ({
+    //     product_id: item.product_id,
+    //     quantity: item.quantity
+    //   }));
+    //   const res = await fetch("http://localhost/farmfresh/api/orders/place", {
+    //     method: "POST",
+    //     headers: { "Content-Type": "application/json" },
+    //     body: JSON.stringify({ token, address, mobile, items })
+    //   });
+    //   const data = await res.json();
+    //   if (data.status === "success") {
+    //     showToast("Order placed successfully! Order ID: #" + data.order_id);
+    //     setTimeout(() => window.location.href = "/", 800);
+    //   } else {
+    //     showToast(data.message || "Failed to place order. Try again.", true);
+    //   }
+    // }
+
+    async function loadUser() {
+      if (token) {
+        try {
+          const res = await fetch("http://localhost/farmfresh/api/getuser", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token })
+          });
+          const data = await res.json();
+          if (data.status === 'success' && data.user) {
+            navRight.innerHTML = `<a href="/">Home</a> <a href="/cart">Cart</a> <a href="#" onclick="logout()">Logout</a>`;
+          } else {
+            logout();
+          }
+        } catch (error) {
+          console.error("Error loading user:", error);
+          logout();
+        }
+      } else {
+        navRight.innerHTML = '<a href="/">Home</a> <a href="/login">Login</a> <a href="/register">Register</a>';
+      }
+    }
+
+
+    function logout() {
+      document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      window.location.href = "/";
+    }
+
+    // Prevent non-numeric input in mobile field
+    document.getElementById('mobile').addEventListener('keypress', function (event) {
+      const charCode = (event.which) ? event.which : event.keyCode;
+      if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+        event.preventDefault();
+      }
+    });
+
+    loadUser();
+    if (token) {
+      loadCart();
+    } else {
+      alert("Please login to place an order.");
+      window.location.href = "/login";
+    }
+  </script>
+</body>
+
+</html>
